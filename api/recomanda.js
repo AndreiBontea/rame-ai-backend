@@ -23,68 +23,47 @@ export default function handler(req, res) {
       return res.status(400).json({ error: "Lipsesc date necesare pentru analiză completă." });
     }
 
-    // Conversie în float
-    const latime = parseFloat(latimeFata);
-    const inaltime = parseFloat(inaltimeFata);
-    const raportFata = parseFloat(raport);
-    const nas = parseFloat(latimeNas);
-    const ochi = parseFloat(interpupilara);
-    const barbie = parseFloat(latimeBarbie);
-    const frunte = parseFloat(inaltimeFrunte);
-    const sprancene = parseFloat(latimeSprancene);
+    const prompt = `Ești un optician profesionist. Primești următoarele măsurători faciale și preferințe ale unei persoane:
 
-    // Logica specializată de recomandare
-    let recomandare = `Pentru o față ${forma}, genul ${gen} și stilul ${stil}, `;
-    
-    // Analiză pe baza raportului și componentelor
-    if (raportFata > 1.2) {
-      recomandare += `fața este foarte lată comparativ cu înălțimea, așa că se recomandă rame subțiri, cu margini drepte, pentru a echilibra proporțiile. `;
-    } else if (raportFata < 0.85) {
-      recomandare += `fața este mai lungă decât lată, deci se recomandă rame mai înalte vertical, eventual cu punte joasă, pentru a reduce impresia de alungire. `;
-    } else {
-      recomandare += `proporțiile sunt echilibrate, ceea ce permite o varietate de stiluri, însă se recomandă evitarea ramelor foarte groase. `;
-    }
+- Gen: ${gen}
+- Stil: ${stil}
+- Formă față: ${forma}
+- Lățime față: ${latimeFata}
+- Înălțime față: ${inaltimeFata}
+- Raport lățime/înălțime: ${raport}
+- Distanță între ochi: ${distOchi}
+- Distanță interpupilară: ${interpupilara}
+- Lățime mandibulă: ${latimeBarbie}
+- Lățime nas: ${latimeNas}
+- Înălțime frunte: ${inaltimeFrunte}
+- Lățime sprâncene: ${latimeSprancene}
 
-    // Analiză nas
-    if (nas > 30) {
-      recomandare += `Pentru un nas mai lat, se recomandă rame cu punte reglabilă sau transparentă. `;
-    } else {
-      recomandare += `Un nas îngust permite rame cu punte îngustă, fără compromis de confort. `;
-    }
+Pe baza acestor date combinate, oferă o recomandare unică, profesionistă, integrată și completă despre ce tip de rame de ochelari se potrivesc cel mai bine acestei persoane. Ia în calcul toate informațiile împreună și oferă o sugestie finală clară: formă rame, grosime, material, culoare, detalii de design. Evită să dai recomandări separate pentru fiecare trăsătură. Gândește ca un specialist în optică și personalizează sugestia ca și cum ai consilia direct clientul.`;
 
-    // Analiză distanță ochi
-    if (ochi < 40) {
-      recomandare += `Distanța între ochi fiind mică, se recomandă rame cu punte mai subțire pentru a crea iluzia de spațiere. `;
-    } else {
-      recomandare += `Distanța mai mare între ochi permite rame cu punte decorativă sau pronunțată. `;
-    }
+    fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7
+      })
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      const content = data.choices?.[0]?.message?.content || "Nu s-a primit un răspuns valid.";
+      return res.status(200).json({ recomandare: content.trim() });
+    })
+    .catch((error) => {
+      console.error("Eroare la generare recomandare GPT:", error);
+      return res.status(500).json({ error: "Eroare la comunicarea cu GPT." });
+    });
 
-    // Analiză barbie
-    if (barbie < 80) {
-      recomandare += `O mandibulă îngustă este completată frumos de rame rotunjite. `;
-    } else {
-      recomandare += `O mandibulă mai proeminentă se echilibrează cu rame pătrate sau dreptunghiulare. `;
-    }
-
-    // Analiză frunte
-    if (frunte > 40) {
-      recomandare += `O frunte înaltă merge bine cu rame groase în partea superioară. `;
-    } else {
-      recomandare += `O frunte joasă este avantajată de rame subțiri sau cat-eye. `;
-    }
-
-    // Stil preferat
-    if (stil === "Elegant") {
-      recomandare += `Stilul elegant poate fi exprimat prin rame metalice subțiri sau acetat lucios, în culori neutre. `;
-    } else if (stil === "Modern") {
-      recomandare += `Pentru un stil modern, rame geometrice sau transparente sunt o alegere inspirată. `;
-    } else if (stil === "Retro") {
-      recomandare += `Stilul retro se potrivește cu rame groase, cu forme clasice rotunde sau pătrate. `;
-    }
-
-    return res.status(200).json({ recomandare: recomandare.trim() });
   } catch (error) {
-    console.error("Eroare la generare recomandare:", error);
+    console.error("Eroare internă:", error);
     return res.status(500).json({ error: "Eroare internă la generare." });
   }
 }
