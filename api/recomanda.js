@@ -9,78 +9,83 @@ export default function handler(req, res) {
 
   try {
     const {
-      gen,
-      stil,
-      forma,
-      latimeFata,
-      inaltimeFata,
-      distOchi,
-      latimeBarbie,
-      raport,
-      interpupilara,
-      latimeNas,
-      inaltimeFrunte,
-      latimeSprancene
+      gen, stil, forma,
+      latimeFata, inaltimeFata, distOchi,
+      latimeBarbie, raport, interpupilara,
+      latimeNas, inaltimeFrunte, latimeSprancene
     } = req.body;
 
-    if (!gen || !stil || !forma) {
-      return res.status(400).json({ error: "Lipsesc datele necesare" });
+    if (
+      !gen || !stil || !forma || !latimeFata || !inaltimeFata ||
+      !distOchi || !latimeBarbie || !raport || !interpupilara ||
+      !latimeNas || !inaltimeFrunte || !latimeSprancene
+    ) {
+      return res.status(400).json({ error: "Lipsesc date necesare pentru analiză completă." });
     }
 
-    // Conversie la float
+    // Conversie în float
     const latime = parseFloat(latimeFata);
     const inaltime = parseFloat(inaltimeFata);
-    const r = parseFloat(raport);
-    const dOchi = parseFloat(distOchi);
-    const barb = parseFloat(latimeBarbie);
-    const inter = parseFloat(interpupilara);
+    const raportFata = parseFloat(raport);
     const nas = parseFloat(latimeNas);
+    const ochi = parseFloat(interpupilara);
+    const barbie = parseFloat(latimeBarbie);
     const frunte = parseFloat(inaltimeFrunte);
     const sprancene = parseFloat(latimeSprancene);
 
-    // Construim o recomandare detaliată
-    let recomandare = `Pentru o față de tip ${forma.toLowerCase()}, cu lățimea de ${latime}px și înălțimea de ${inaltime}px (raport ${r.toFixed(2)}), `;
-
-    if (r > 1.3) {
-      recomandare += `se recomandă rame pătrate sau dreptunghiulare pentru a echilibra lățimea feței. `;
-    } else if (r < 0.9) {
-      recomandare += `ramele rotunde sau ovale ajută la echilibrarea feței alungite. `;
+    // Logica specializată de recomandare
+    let recomandare = `Pentru o față ${forma}, genul ${gen} și stilul ${stil}, `;
+    
+    // Analiză pe baza raportului și componentelor
+    if (raportFata > 1.2) {
+      recomandare += `fața este foarte lată comparativ cu înălțimea, așa că se recomandă rame subțiri, cu margini drepte, pentru a echilibra proporțiile. `;
+    } else if (raportFata < 0.85) {
+      recomandare += `fața este mai lungă decât lată, deci se recomandă rame mai înalte vertical, eventual cu punte joasă, pentru a reduce impresia de alungire. `;
     } else {
-      recomandare += `forme versatile precum rame "wayfarer" sau ușor unghiulare sunt potrivite. `;
+      recomandare += `proporțiile sunt echilibrate, ceea ce permite o varietate de stiluri, însă se recomandă evitarea ramelor foarte groase. `;
     }
 
-    if (dOchi < 70) {
-      recomandare += `Distanța mică între ochi sugerează rame cu punte nazală îngustă sau transparentă. `;
-    } else if (dOchi > 90) {
-      recomandare += `Pentru ochi mai depărtați, sunt indicate rame cu punte nazală lată. `;
+    // Analiză nas
+    if (nas > 30) {
+      recomandare += `Pentru un nas mai lat, se recomandă rame cu punte reglabilă sau transparentă. `;
+    } else {
+      recomandare += `Un nas îngust permite rame cu punte îngustă, fără compromis de confort. `;
     }
 
-    if (barb < sprancene * 0.75) {
-      recomandare += `Bărbia îngustă față de frunte necesită rame mai accentuate în partea superioară. `;
+    // Analiză distanță ochi
+    if (ochi < 40) {
+      recomandare += `Distanța între ochi fiind mică, se recomandă rame cu punte mai subțire pentru a crea iluzia de spațiere. `;
+    } else {
+      recomandare += `Distanța mai mare între ochi permite rame cu punte decorativă sau pronunțată. `;
     }
 
-    if (nas < 30) {
-      recomandare += `Un nas îngust indică rame cu suport nazal moale sau ajustabil. `;
+    // Analiză barbie
+    if (barbie < 80) {
+      recomandare += `O mandibulă îngustă este completată frumos de rame rotunjite. `;
+    } else {
+      recomandare += `O mandibulă mai proeminentă se echilibrează cu rame pătrate sau dreptunghiulare. `;
     }
 
-    if (frunte > 120) {
-      recomandare += `Fruntea înaltă poate fi echilibrată cu rame mai late sau cu brațe evidențiate. `;
+    // Analiză frunte
+    if (frunte > 40) {
+      recomandare += `O frunte înaltă merge bine cu rame groase în partea superioară. `;
+    } else {
+      recomandare += `O frunte joasă este avantajată de rame subțiri sau cat-eye. `;
     }
 
-    // Stilul și genul
-    recomandare += `În funcție de stilul ${stil.toLowerCase()} și genul ${gen.toLowerCase()}, se recomandă `;
-
+    // Stil preferat
     if (stil === "Elegant") {
-      recomandare += `rame subțiri din titan sau metal, cu un design minimalist și culoare neutră sau aurie.`;
-    } else if (stil === "Sport") {
-      recomandare += `rame robuste din plastic flexibil sau policarbonat, cu forme aerodinamice.`;
-    } else {
-      recomandare += `rame casual, versatile, potrivite pentru utilizare zilnică, în culori discrete.`;
+      recomandare += `Stilul elegant poate fi exprimat prin rame metalice subțiri sau acetat lucios, în culori neutre. `;
+    } else if (stil === "Modern") {
+      recomandare += `Pentru un stil modern, rame geometrice sau transparente sunt o alegere inspirată. `;
+    } else if (stil === "Retro") {
+      recomandare += `Stilul retro se potrivește cu rame groase, cu forme clasice rotunde sau pătrate. `;
     }
 
-    res.status(200).json({ raspuns: recomandare });
+    return res.status(200).json({ recomandare: recomandare.trim() });
   } catch (error) {
     console.error("Eroare la generare recomandare:", error);
-    res.status(500).json({ error: "Eroare internă la generare." });
+    return res.status(500).json({ error: "Eroare internă la generare." });
   }
 }
+
