@@ -1,74 +1,48 @@
-import OpenAI from "openai"; // dacă ești în Vercel edge sau Next.js API
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY // setează cheia în .env
-});
+import { OpenAI } from "openai";
 
 export default async function handler(req, res) {
- res.setHeader("Access-Control-Allow-Origin", "https://rame-ai-frontend.vercel.app");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Origin", "https://rame-ai-frontend.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
+  const openai = new OpenAI({
+    apiKey: "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" // temporar
+  });
+
   try {
-    const {
-      gen, stil, forma,
-      latimeFata, inaltimeFata, distOchi,
-      latimeBarbie, raport, interpupilara,
-      latimeNas, inaltimeFrunte, latimeSprancene
-    } = req.body;
-
-    if (
-      !gen || !stil || !forma || !latimeFata || !inaltimeFata ||
-      !distOchi || !latimeBarbie || !raport || !interpupilara ||
-      !latimeNas || !inaltimeFrunte || !latimeSprancene
-    ) {
-      return res.status(400).json({ error: "Lipsesc date necesare pentru analiză completă." });
-    }
-
-    // Conversie în float
-    const latime = parseFloat(latimeFata);
-    const inaltime = parseFloat(inaltimeFata);
-    const raportFata = parseFloat(raport);
-    const nas = parseFloat(latimeNas);
-    const ochi = parseFloat(interpupilara);
-    const barbie = parseFloat(latimeBarbie);
-    const frunte = parseFloat(inaltimeFrunte);
-    const sprancene = parseFloat(latimeSprancene);
+    const { gen, stil, formaFata, masuratori } = req.body;
 
     const prompt = `
-Pe baza următoarelor trăsături faciale:
+Analizează următoarele trăsături faciale și oferă o singură recomandare clară, unitară și profesionistă privind tipul ideal de ramă de ochelari:
+
 - Gen: ${gen}
 - Stil preferat: ${stil}
-- Forma feței: ${forma}
-- Lățime față: ${latime.toFixed(2)}
-- Înălțime față: ${inaltime.toFixed(2)}
-- Raport față: ${raportFata.toFixed(2)}
-- Distanță între ochi: ${ochi.toFixed(2)}
-- Lățime bărbie: ${barbie.toFixed(2)}
-- Lățime nas: ${nas.toFixed(2)}
-- Înălțime frunte: ${frunte.toFixed(2)}
-- Lățime sprâncene: ${sprancene.toFixed(2)}
+- Forma feței: ${formaFata}
+- Lățime față: ${masuratori.latimeFata}
+- Înălțime față: ${masuratori.inaltimeFata}
+- Raport față: ${masuratori.raport}
+- Distanță ochi: ${masuratori.distOchi}
+- Lățime bărbie: ${masuratori.latimeBarbie}
+- Lățime nas: ${masuratori.latimeNas}
+- Înălțime frunte: ${masuratori.inaltimeFrunte}
+- Lățime sprâncene: ${masuratori.latimeSprancene}
 
-Imaginează-ți că ești un specialist în optică. Ținând cont de toate aceste trăsături, oferă o singură recomandare profesionistă și coerentă pentru un model concret de rame de ochelari (formă, grosime, culoare, material, tip punte, eventual branduri dacă sunt relevante). Nu descrie fiecare trăsătură individual, ci integrează totul într-o recomandare finală personalizată. Răspunsul trebuie să sune ca și cum ar fi spus de un optician profesionist clientului său.
+Nu da răspunsuri separate pentru fiecare trăsătură. Nu repeta inputul. Răspunsul trebuie să sune ca și cum ar fi oferit de un consultant profesionist în optică, luând în calcul toate detaliile de mai sus ca un tot unitar.
     `;
 
-    // 🔥 Apelează modelul GPT (poți folosi și alt API dacă ai)
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.9
+      model: "gpt-4"
     });
 
-    const rezultat = completion.choices[0].message.content;
-
-    return res.status(200).json({ recomandare: rezultat.trim() });
+    res.status(200).json({ recomandare: completion.choices[0].message.content });
   } catch (error) {
-    console.error("Eroare la generare recomandare:", error);
-    return res.status(500).json({ error: "Eroare internă la generare." });
+    console.error("Eroare la generare:", error);
+    res.status(500).json({ error: "Eroare la generarea recomandării." });
   }
 }
