@@ -23,47 +23,36 @@ export default function handler(req, res) {
       return res.status(400).json({ error: "Lipsesc date necesare pentru analiză completă." });
     }
 
-    const prompt = `Ești un optician profesionist. Primești următoarele măsurători faciale și preferințe ale unei persoane:
+    // Conversie în float
+    const latime = parseFloat(latimeFata);
+    const inaltime = parseFloat(inaltimeFata);
+    const raportFata = parseFloat(raport);
+    const nas = parseFloat(latimeNas);
+    const ochi = parseFloat(interpupilara);
+    const barbie = parseFloat(latimeBarbie);
+    const frunte = parseFloat(inaltimeFrunte);
+    const sprancene = parseFloat(latimeSprancene);
 
+    // Prompt coerent bazat pe toate datele
+    const recomandare = `Pe baza analizelor faciale detectate:
 - Gen: ${gen}
-- Stil: ${stil}
-- Formă față: ${forma}
-- Lățime față: ${latimeFata}
-- Înălțime față: ${inaltimeFata}
-- Raport lățime/înălțime: ${raport}
-- Distanță între ochi: ${distOchi}
-- Distanță interpupilară: ${interpupilara}
-- Lățime mandibulă: ${latimeBarbie}
-- Lățime nas: ${latimeNas}
-- Înălțime frunte: ${inaltimeFrunte}
-- Lățime sprâncene: ${latimeSprancene}
+- Stil preferat: ${stil}
+- Forma feței: ${forma}
+- Lățime față: ${latime.toFixed(2)}
+- Înălțime față: ${inaltime.toFixed(2)}
+- Raport față: ${raportFata.toFixed(2)}
+- Distanță ochi: ${ochi.toFixed(2)}
+- Lățime bărbie: ${barbie.toFixed(2)}
+- Lățime nas: ${nas.toFixed(2)}
+- Înălțime frunte: ${frunte.toFixed(2)}
+- Lățime sprâncene: ${sprancene.toFixed(2)}
 
-Pe baza acestor date combinate, oferă o recomandare unică, profesionistă, integrată și completă despre ce tip de rame de ochelari se potrivesc cel mai bine acestei persoane. Ia în calcul toate informațiile împreună și oferă o sugestie finală clară: formă rame, grosime, material, culoare, detalii de design. Evită să dai recomandări separate pentru fiecare trăsătură. Gândește ca un specialist în optică și personalizează sugestia ca și cum ai consilia direct clientul.`;
+Recomandăm o ramă de ochelari care să țină cont de toate aceste trăsături, alegând modelul ideal în funcție de proporțiile generale ale feței, distanțele relevante și stilul exprimat. Astfel, pentru această combinație unică, se potrivesc cel mai bine ramele ... (aici GPT-ul va completa cu recomandarea coerentă, unitară și profesionistă).`;
 
-    fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7
-      })
-    })
-    .then((response) => response.json())
-    .then((data) => {
-      const content = data.choices?.[0]?.message?.content || "Nu s-a primit un răspuns valid.";
-      return res.status(200).json({ recomandare: content.trim() });
-    })
-    .catch((error) => {
-      console.error("Eroare la generare recomandare GPT:", error);
-      return res.status(500).json({ error: "Eroare la comunicarea cu GPT." });
-    });
-
+    // Trimitem ca "recomandare" tot promptul (ca test)
+    return res.status(200).json({ recomandare: recomandare.trim() });
   } catch (error) {
-    console.error("Eroare internă:", error);
+    console.error("Eroare la generare recomandare:", error);
     return res.status(500).json({ error: "Eroare internă la generare." });
   }
 }
