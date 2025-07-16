@@ -33,23 +33,47 @@ export default function handler(req, res) {
     const frunte = parseFloat(inaltimeFrunte);
     const sprancene = parseFloat(latimeSprancene);
 
-    // Prompt coerent bazat pe toate datele
-    const recomandare = `Pe baza analizelor faciale detectate:
-- Gen: ${gen}
-- Stil preferat: ${stil}
-- Forma feței: ${forma}
-- Lățime față: ${latime.toFixed(2)}
-- Înălțime față: ${inaltime.toFixed(2)}
-- Raport față: ${raportFata.toFixed(2)}
-- Distanță ochi: ${ochi.toFixed(2)}
-- Lățime bărbie: ${barbie.toFixed(2)}
-- Lățime nas: ${nas.toFixed(2)}
-- Înălțime frunte: ${frunte.toFixed(2)}
-- Lățime sprâncene: ${sprancene.toFixed(2)}
+    // Recomandare integrată finală
+    let tipRama = "";
 
-Recomandăm o ramă de ochelari care să țină cont de toate aceste trăsături, alegând modelul ideal în funcție de proporțiile generale ale feței, distanțele relevante și stilul exprimat. Astfel, pentru această combinație unică, se potrivesc cel mai bine ramele ... (aici GPT-ul va completa cu recomandarea coerentă, unitară și profesionistă).`;
+    if (raportFata < 0.85) {
+      tipRama = "rame înalte, dreptunghiulare, cu margini ușor rotunjite și punte joasă";
+    } else if (raportFata > 1.2) {
+      tipRama = "rame înguste, cu margini drepte sau unghiulare, pentru echilibrarea lățimii";
+    } else {
+      tipRama = "rame ovale sau rectangulare, potrivite pentru proporții echilibrate";
+    }
 
-    // Trimitem ca "recomandare" tot promptul (ca test)
+    if (nas < 30) {
+      tipRama += ", cu punte îngustă";
+    } else {
+      tipRama += ", cu punte joasă sau transparentă";
+    }
+
+    if (ochi < 40) {
+      tipRama += ", care creează impresia de ochi mai distanțați";
+    }
+
+    if (barbie < 80) {
+      tipRama += ", cu colțuri rotunjite pentru a înmuia linia bărbiei";
+    }
+
+    if (frunte < 40) {
+      tipRama += ", subțiri sau cat-eye pentru a ridica vizual fruntea";
+    } else {
+      tipRama += ", groase în partea superioară pentru echilibrarea frunții";
+    }
+
+    if (stil === "Elegant") {
+      tipRama += ", realizate din metal sau acetat lucios, în culori neutre";
+    } else if (stil === "Modern") {
+      tipRama += ", cu design geometric sau transparent";
+    } else if (stil === "Retro") {
+      tipRama += ", groase, cu forme clasice retro";
+    }
+
+    const recomandare = `Pe baza trăsăturilor faciale și a stilului ales, recomandăm ${tipRama}.`;
+
     return res.status(200).json({ recomandare: recomandare.trim() });
   } catch (error) {
     console.error("Eroare la generare recomandare:", error);
