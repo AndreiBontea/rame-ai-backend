@@ -33,8 +33,25 @@ export default function handler(req, res) {
     const frunte = parseFloat(inaltimeFrunte);
     const sprancene = parseFloat(latimeSprancene);
 
-    // Recomandare inițială
-    let recomandare = `Pe baza trăsăturilor faciale analizate și a stilului selectat (${stil}), recomandăm următoarele tipuri de rame:\n\n`;
+    // Prompt coerent, holistic
+const prompt = `
+Pe baza următoarelor trăsături faciale:
+- Gen: ${gen}
+- Stil preferat: ${stil}
+- Forma feței: ${forma}
+- Lățime față: ${latime}
+- Înălțime față: ${inaltime}
+- Raport față: ${raportFata}
+- Distanță între ochi: ${ochi}
+- Lățime bărbie: ${barbie}
+- Lățime nas: ${nas}
+- Înălțime frunte: ${frunte}
+- Lățime sprâncene: ${sprancene}
+
+Imaginează-ți că ești un specialist în optică. Ținând cont de toate aceste trăsături, oferă o singură recomandare profesionistă și coerentă pentru un model concret de rame de ochelari (formă, grosime, culoare, material, tip punte, eventual branduri dacă sunt relevante). Nu descrie fiecare trăsătură individual, ci integrează totul într-o recomandare finală personalizată. Răspunsul trebuie să sune ca și cum ar fi spus de un optician profesionist clientului său.
+`;
+
+return res.status(200).json({ recomandare: prompt.trim() });
 
     // Forma feței
     if (forma === "Rotundă") {
