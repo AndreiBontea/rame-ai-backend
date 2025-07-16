@@ -1,15 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/recomanda.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
-      "src": "/api/recomanda",
-      "dest": "api/recomanda.js"
+      "src": "/api/(.*)",
+      "dest": "api/$1.js"
     }
   ]
 }
